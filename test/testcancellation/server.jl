@@ -1,20 +1,12 @@
-# module test_testcancellation_server
+module test_testcancellation_server
 
 using Test
 using Sockets
-using Base: CancellationTokenSource, CancellationToken, CancellationRequest, cancel!
+using TestCancellation
 
 # from julia/test/cancellation.jl
 
-# wait a little, so cancellation targets are (most likely) started and parked
-spin(n=3) = for _ in 1:n; yield(); end
-
-# wait for `t` and assert it failed with the delivered CancellationRequest
-function expect_cancelled(t::Task)
-    @test_throws TaskFailedException wait(t)
-    @test t.result isa CancellationRequest
-end
-
+# @testset "explicit cancel keyword arguments" begin
 # live cancellation: Sockets.accept and recv with explicit tokens
 host = Sockets.localhost
 port, server = Sockets.listenany(host, 0)
@@ -41,4 +33,4 @@ close(server)
 @test server isa Sockets.TCPServer
 @test server.status == Sockets.StatusClosed
 
-# end # module test_testcancellation_server
+end # module test_testcancellation_server

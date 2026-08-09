@@ -1,17 +1,16 @@
 module TestCancellation
 
-"""
-    hello(who::String)
+export      CancellationTokenSource, CancellationToken, CancellationRequest, cancel!
+using Base: CancellationTokenSource, CancellationToken, CancellationRequest, cancel!
 
-Return "Hello, `who`".
-"""
-hello(who::String) = "Hello, $who"
+export      CANCEL_TOKEN, CANCEL_REQUEST_ABANDON_EXTERNAL, CANCEL_REQUEST_SAFE
+using Base: CANCEL_TOKEN, CANCEL_REQUEST_ABANDON_EXTERNAL, CANCEL_REQUEST_SAFE
 
-"""
-    domath(x::Number)
+export                   with
+using Base.ScopedValues: with
 
-Return `x + 5`.
-"""
-domath(x::Number) = x + 5
+export cancellable_spawn, cancellable, spin, expect_cancelled
+# from julia/test/cancellation.jl
+include("cancellation.jl")
 
 end # module TestCancellation
