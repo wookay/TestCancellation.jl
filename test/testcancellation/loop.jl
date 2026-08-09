@@ -24,7 +24,9 @@ t, src = cancellable_spawn() do
     end
 end
 cancel!(src)
+@test istaskdone(t)
 @test istaskfailed(t)
+
 @test t.result isa CancellationRequest
 @test Base.severity(t.result) == Base.severity(CANCEL_REQUEST_SAFE)
 
@@ -35,6 +37,9 @@ function cancellable(f)
     t = with(() -> @async(f()), CANCEL_TOKEN => CancellationToken(src))
     return t, src
 end
+
+# wait a little, so cancellation targets are (most likely) started and parked
+spin(n=3) = for _ in 1:n; yield(); end
 
 # @testset "escalation during @sync teardown keeps awaiting internal tasks" begin
 stop = Ref(false)
@@ -50,13 +55,16 @@ t, src = cancellable() do
     end
 end
 wait(started)
-cancel!(src)
-@test !istaskdone(t)
 cancel!(src, CANCEL_REQUEST_ABANDON_EXTERNAL)
-stop[] = true
 @test !istaskdone(t)
 @test !istaskfailed(t)
+
+stop[] = true
+spin()
+
 @test t.result isa CancellationRequest
-@test Base.severity(t.result) == Base.severity(CANCEL_REQUEST_SAFE)
+@test Base.severity(t.result) == Base.severity(CANCEL_REQUEST_ABANDON_EXTERNAL)
+@test istaskdone(t)
+@test istaskfailed(t)
 
 end # module test_testcancellation_loop
